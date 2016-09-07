@@ -47,7 +47,6 @@ import java.util.Calendar;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.UUID;
-import static org.apache.axis.utils.JavaUtils.CR;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormatter;
