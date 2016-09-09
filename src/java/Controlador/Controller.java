@@ -3,6 +3,7 @@ package Controlador;
 import Modelo.PagosDosDAO;
 import Modelo.PagosUnoDAO;
 import Modelo.RecargasDAO;
+import Modelo.Validaciones;
 import POJOS.PagoDos;
 import POJOS.PagoUno;
 import POJOS.Recargas;
@@ -22,35 +23,63 @@ public class Controller {
     public Controller() {
     }
 
-    public Controller(Recargas recarga,String Id) {
+    public Controller(Recargas recarga, String Id) {
         r = recarga;
         client = new ApiClient(Id);
     }
 
-    public Controller(PagoUno pagoUno,String Id) {
+    public Controller(PagoUno pagoUno, String Id) {
         pu = pagoUno;
         client = new ApiClient(Id);
     }
 
-    public Controller(PagoDos pagoDos,String Id) {
+    public Controller(PagoDos pagoDos, String Id) {
         pd = pagoDos;
         client = new ApiClient(Id);
     }
 
     public ApplyTransactionResponse Recarga() throws IOException {
-        return NuevaRecarga(r);
+
+        Validaciones validar = new Validaciones();
+        if (validar.VerificarNumero(r.getPhone().substring(1, r.getPhone().length() - 1))
+                && validar.VerificarTerminal(r.getTerminal().substring(1, r.getTerminal().length() - 1))) {
+            return NuevaRecarga(r);
+        } else {
+            return null;
+        }
+
     }
 
     public ApplyTransactionResponse PagoUno() {
-        return NuevoPagoUno(pu);
+
+        Validaciones validar = new Validaciones();
+        if (validar.VerificarTerminal(pu.getTerminal().substring(1, pu.getTerminal().length() - 1))) {
+            return NuevoPagoUno(pu);
+        } else {
+            return null;
+        }
+
     }
 
     public ApplyTransactionResponse PagoDos() {
-        return NuevoPagoDos(pd);
+
+        Validaciones validar = new Validaciones();
+        if (validar.VerificarTerminal(pd.getTerminal().substring(1, pd.getTerminal().length() - 1))) {
+            return NuevoPagoDos(pd);
+        } else {
+            return null;
+        }
+
     }
-    
-    public AccountBalanceQueryResponse Consulta(String ConceptCode,String Account) {
-        return ConsultarSaldo(ConceptCode,Account);
+
+    public AccountBalanceQueryResponse Consulta(String Terminal, String ConceptCode, String Account) {
+        Validaciones validar = new Validaciones();
+        if (validar.VerificarTerminal(Terminal.substring(1, Terminal.length() - 1))) {
+            return ConsultarSaldo(ConceptCode, Account);
+        } else {
+            return null;
+        }
+
     }
 
     private ApplyTransactionResponse NuevaRecarga(Recargas recarga) throws IOException {
@@ -65,7 +94,7 @@ public class Controller {
         String conceptCode = recarga.getConceptCode();
         String account = recarga.getPhone();
         //---
-        
+
         //---Almacenamiento en BD
         try {
             RecargasDAO RDAO = new RecargasDAO(); //Creamos objeto tipo recarga con los datos del WS
@@ -84,19 +113,17 @@ public class Controller {
             try {
                 if (t.getStatusCode() == 0) {
                     RDAO.Actualizar(recarga, Folio, t.getEPagoTransactionId(), "Exito");
-                     mensaje = "Folio: " + t.getEPagoTransactionId() + "  Estatus: " + t.getStatusCode();
+                    mensaje = "Folio: " + t.getEPagoTransactionId() + "  Estatus: " + t.getStatusCode();
                 } else {
                     RDAO.Actualizar(recarga, Folio, t.getEPagoTransactionId(), "Error: " + t.getStatusCode());
-                     mensaje = "Folio: " + "Error" + "  Estatus: " + t.getStatusCode();
+                    mensaje = "Folio: " + "Error" + "  Estatus: " + t.getStatusCode();
                 }
-                
 
             } catch (Exception e4) {
                 e4.printStackTrace();
             }
             //---
 
-           
         } catch (Exception e2) {
             e2.printStackTrace();
             mensaje = "Error de transacción";
@@ -105,8 +132,6 @@ public class Controller {
 
         return t;
     }
-    
-    
 
     private ApplyTransactionResponse NuevoPagoUno(PagoUno pagouno) {
 
@@ -116,7 +141,7 @@ public class Controller {
         ApplyTransactionResponse t = null;
         BigDecimal subTotalAmount = new BigDecimal(pagouno.getSubtotalAmount());
         String conceptCode = pagouno.getConceptCode();
-        String account =  pagouno.getAccount();
+        String account = pagouno.getAccount();
 
         try {
             //Creamos objeto tipo recarga con los datos del WS
@@ -126,18 +151,17 @@ public class Controller {
             mensaje = "Error de almacenamiento";
         }
 
-        
         try {
             //Realizamos la transacción
-           
+
             t = client.executeTransaction(conceptCode, account, subTotalAmount, null);
 
             //Realizamos la actualización del folio y el estatus
             PagosUnoDAO PuDAO = new PagosUnoDAO();
             if (t.getStatusCode() == 0) {
-                PuDAO.Actualizar(pagouno,Folio, t.getClientSwitchTransactionId(), "Exito");
+                PuDAO.Actualizar(pagouno, Folio, t.getClientSwitchTransactionId(), "Exito");
             } else {
-                PuDAO.Actualizar(pagouno,Folio, t.getClientSwitchTransactionId(), "Error: " + t.getStatusCode());
+                PuDAO.Actualizar(pagouno, Folio, t.getClientSwitchTransactionId(), "Error: " + t.getStatusCode());
             }
 
             mensaje = "Folio: " + t.getClientSwitchTransactionId() + "  Estatus" + t.getStatusCode();
@@ -157,31 +181,29 @@ public class Controller {
         int Folio = 0;
         ApplyTransactionResponse t = null;
         BigDecimal subTotalAmount = new BigDecimal(pagodos.getSubtotalAmount());
-        String conceptCode =  pagodos.getConceptCode();
-        String account =  pagodos.getAccount();
+        String conceptCode = pagodos.getConceptCode();
+        String account = pagodos.getAccount();
         String DV = pagodos.getDv();
         try {
             //Creamos objeto tipo recarga con los datos del WS
-            
+
             PagosDosDAO PdDAO = new PagosDosDAO();
             Folio = Integer.valueOf(PdDAO.IngresarPagoDos(pagodos));
         } catch (Exception e0) {
             mensaje = "Error de almacenamiento";
         }
 
-        
-
         try {
             //Realizamos la transacción
-           
+
             t = client.executeTransaction(conceptCode, account, subTotalAmount, DV);
 
             //Realizamos la actualización del folio y el estatus
             PagosDosDAO PdDAO = new PagosDosDAO();
             if (t.getStatusCode() == 0) {
-                PdDAO.Actualizar(pagodos,Folio, t.getClientSwitchTransactionId(), "Exito");
+                PdDAO.Actualizar(pagodos, Folio, t.getClientSwitchTransactionId(), "Exito");
             } else {
-                PdDAO.Actualizar(pagodos,Folio, t.getClientSwitchTransactionId(), "Error: " + t.getStatusCode());
+                PdDAO.Actualizar(pagodos, Folio, t.getClientSwitchTransactionId(), "Error: " + t.getStatusCode());
             }
 
             mensaje = "Folio: " + t.getClientSwitchTransactionId() + "  Estatus" + t.getStatusCode();
@@ -193,12 +215,11 @@ public class Controller {
         return t;
 
     }
-    
-    private AccountBalanceQueryResponse ConsultarSaldo(String ConceptCode, String Account)
-    {
-        
-        AccountBalanceQueryResponse ABQR=new AccountBalanceQueryResponse();
-        return ABQR=client.executeAccountBalanceQuery(ConceptCode, Account);
+
+    private AccountBalanceQueryResponse ConsultarSaldo(String ConceptCode, String Account) {
+
+        AccountBalanceQueryResponse ABQR = new AccountBalanceQueryResponse();
+        return ABQR = client.executeAccountBalanceQuery(ConceptCode, Account);
     }
 
 }

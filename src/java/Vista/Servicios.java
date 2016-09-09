@@ -114,7 +114,7 @@ public class Servicios {
            Validaciones validar = new Validaciones();
         if (validar.VerificarTerminal(IDTerminal.substring(1, IDTerminal.length() - 1))) {
             Controller consulta = new Controller();
-            return consulta.Consulta(ConceptCode.substring(1, ConceptCode.length() - 1), Account.substring(1, Account.length() - 1));
+            return consulta.Consulta(IDTerminal.substring(1, IDTerminal.length() - 1),ConceptCode.substring(1, ConceptCode.length() - 1), Account.substring(1, Account.length() - 1));
         }
         else
         {
