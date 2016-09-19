@@ -79,7 +79,7 @@ public class Controller {
         Validaciones validar = new Validaciones();
         
         if (validar.VerificarTerminal(Terminal)) {
-            return ConsultarSaldo(ConceptCode, Account);
+            return ConsultarSaldo(Terminal, ConceptCode, Account);
         } else {
             return null;
         }
@@ -220,11 +220,11 @@ public class Controller {
 
     }
 
-    private AccountBalanceQueryResponse ConsultarSaldo(String ConceptCode, String Account) 
+    private AccountBalanceQueryResponse ConsultarSaldo(String Terminal, String ConceptCode, String Account) 
     {
         System.out.println("Final: "+ConceptCode +" - "+ Account);
-        AccountBalanceQueryResponse ABQR = new AccountBalanceQueryResponse();
-        return ABQR = client.executeAccountBalanceQuery(ConceptCode, Account);
+        ApiClient clientA = new ApiClient(Terminal);
+        return clientA.executeAccountBalanceQuery(ConceptCode, Account);
     }
 
 }
