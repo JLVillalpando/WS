@@ -39,10 +39,11 @@ public class Controller {
     }
 
     public ApplyTransactionResponse Recarga() throws IOException {
-
+        System.out.println(r.getPhone().substring(0, r.getPhone().length()));
+        System.out.println(r.getTerminal().substring(0, r.getTerminal().length()));
+        
         Validaciones validar = new Validaciones();
-        if (validar.VerificarNumero(r.getPhone().substring(1, r.getPhone().length() - 1))
-                && validar.VerificarTerminal(r.getTerminal().substring(1, r.getTerminal().length() - 1))) {
+        if (validar.VerificarNumero(r.getPhone()) && validar.VerificarTerminal(r.getTerminal())) {
             return NuevaRecarga(r);
         } else {
             return null;
@@ -53,7 +54,9 @@ public class Controller {
     public ApplyTransactionResponse PagoUno() {
 
         Validaciones validar = new Validaciones();
-        if (validar.VerificarTerminal(pu.getTerminal().substring(1, pu.getTerminal().length() - 1))) {
+        
+       
+        if (validar.VerificarTerminal(pu.getTerminal())) {
             return NuevoPagoUno(pu);
         } else {
             return null;
@@ -64,7 +67,7 @@ public class Controller {
     public ApplyTransactionResponse PagoDos() {
 
         Validaciones validar = new Validaciones();
-        if (validar.VerificarTerminal(pd.getTerminal().substring(1, pd.getTerminal().length() - 1))) {
+        if (validar.VerificarTerminal(pd.getTerminal())) {
             return NuevoPagoDos(pd);
         } else {
             return null;
@@ -74,7 +77,8 @@ public class Controller {
 
     public AccountBalanceQueryResponse Consulta(String Terminal, String ConceptCode, String Account) {
         Validaciones validar = new Validaciones();
-        if (validar.VerificarTerminal(Terminal.substring(1, Terminal.length() - 1))) {
+        
+        if (validar.VerificarTerminal(Terminal)) {
             return ConsultarSaldo(ConceptCode, Account);
         } else {
             return null;
@@ -216,8 +220,9 @@ public class Controller {
 
     }
 
-    private AccountBalanceQueryResponse ConsultarSaldo(String ConceptCode, String Account) {
-
+    private AccountBalanceQueryResponse ConsultarSaldo(String ConceptCode, String Account) 
+    {
+        System.out.println("Final: "+ConceptCode +" - "+ Account);
         AccountBalanceQueryResponse ABQR = new AccountBalanceQueryResponse();
         return ABQR = client.executeAccountBalanceQuery(ConceptCode, Account);
     }
